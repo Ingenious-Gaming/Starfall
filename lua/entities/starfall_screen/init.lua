@@ -168,6 +168,7 @@ function ENT:Use( activator )
 end
 
 function ENT:OnRemove()
+	self:runScriptHook( "Removed" )
     self.BaseClass.OnRemove( self )
     screens[ self ] = nil
 end

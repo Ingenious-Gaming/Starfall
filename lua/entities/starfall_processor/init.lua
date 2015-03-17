@@ -73,6 +73,7 @@ function ENT:Think ()
 end
 
 function ENT:OnRemove ()
+	self:runScriptHook( "Removed" )
 	self.BaseClass.OnRemove( self )
 end
 
