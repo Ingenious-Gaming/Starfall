@@ -1290,11 +1290,15 @@ if CLIENT then
 			if path == codename and maincode then
 				code = maincode
 			else
-				code = file.Read( "starfall/"..path, "DATA" ) or error( "Bad include: " .. path, 0 )
+				code = file.Read( "starfall/"..path, "DATA" ) or error( { fatal = false, err = "Bad include: " .. path }, 0 )
+
 			end
 			
 			tbl.files[ path ] = code
-			SF.Preprocessor.ParseDirectives( path, code, {}, ppdata )
+			local ok, err = SF.Preprocessor.ParseDirectives( path, code, {}, ppdata, nil, { "include" } )
+			if not ok and err then
+				error( { fatal = false, err = err }, 0 )
+			end
 			
 			if ppdata.includes and ppdata.includes[ path ] then
 				local inc = ppdata.includes[ path ]
@@ -1351,8 +1355,8 @@ if CLIENT then
 
 		if ok then
 			return true, tbl
-		elseif msg:sub( 1, 13 ) == "Bad include: " then
-			return false, msg
+		elseif type( msg ) == "table" and not msg.fatal then
+			return false, msg.err
 		else
 			error( msg, 0 )
 		end
