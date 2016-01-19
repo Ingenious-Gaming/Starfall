@@ -1,0 +1,31 @@
+{
+	"input" : {
+		"description" : "Allows the user to get input from others",
+		"children" : {
+			"keyboard" : {
+				"description" : "Allows the user to get keyboard inputs",
+				"children" : {
+					"self" : { "default" : true, },
+					"buddy" : { "default" : true },
+					"other" : { "default" : "owner" }
+				}
+			},
+			"mouse" : {
+				"description" : "Allows the user to get mouse inputs",
+				"children" : {
+					"self" : { "default" : true },
+					"buddy" : { "default" : true },
+					"other" : { "default" : "owner" }
+				}
+			},
+			"lookup" : {
+				"description" : "Allows the user to lookup input bindings",
+				"children" : {
+					"self" : { "default" : true },
+					"buddy" : { "default" : true },
+					"other" : { "default" : "owner" }
+				}
+			}
+		}
+	}
+}
