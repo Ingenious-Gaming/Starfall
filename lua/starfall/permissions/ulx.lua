@@ -17,7 +17,7 @@ function AM.hasNode ( player, nodeID )
 
 		ret = player:query( "sf " .. nodeID .. ext )
 		if not ret and node.parent then
-			ret = ulibHasNode( player, node.parent )
+			ret = AM.hasNode( player, node.parent )
 		elseif not ret then
 			ret = player:query( "sf *" )
 		end

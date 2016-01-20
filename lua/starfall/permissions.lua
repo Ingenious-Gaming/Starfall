@@ -64,8 +64,8 @@ end
 -- @param nodeID The string that identifies the node
 function P.hasNode ( player, nodeID )
 	local ret
-	if hasNodeOverride then
-		ret = hasNodeOverride( player, nodeID )
+	if adminMod.hasNode then
+		ret = adminMod.hasNode( player, nodeID )
 	end
 
 	if ret == nil then

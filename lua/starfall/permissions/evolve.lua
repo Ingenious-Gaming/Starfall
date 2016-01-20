@@ -18,7 +18,7 @@ function AM.hasNode ( player, nodeID )
 
 		ret = player:EV_HasPrivilege( "sf " .. nodeID .. ext )
 		if not ret and node.parent then
-			ret = evolveHasNode( player, node.parent )
+			ret = AM.hasNode( player, node.parent )
 		elseif not ret then
 			ret = player:EV_HasPrivilege( "sf *" )
 		end
