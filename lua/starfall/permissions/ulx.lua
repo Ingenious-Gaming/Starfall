@@ -3,7 +3,9 @@ local AM = {}
 function AM.registerNode ( nodeID, nodeTable )
 	if not ULib or nodeTable.children then return end
 
-	ULib.ucl.registerAccess( "sf " .. nodeID, nil, nodeTable.description or "", "Starfall" )
+	if SERVER then
+		ULib.ucl.registerAccess( "sf " .. nodeID, nil, nodeTable.description or "", "Starfall" )
+	end
 end
 
 function AM.hasNode ( player, nodeID )

@@ -8,7 +8,9 @@ P.__index = P
 
 P.nodes = {}
 
-P.AdminMod = CreateConVar( "sf_adminmod", "", { FCVAR_ARCHIVE }, "The name of the adminmod to use for starfall permissions" )
+if SERVER then
+	P.AdminMod = CreateConVar( "sf_adminmod", "", { FCVAR_ARCHIVE }, "The name of the adminmod to use for starfall permissions" )
+end
 
 local providers = {}
 local adminMod = {}
@@ -24,7 +26,7 @@ function P.registerProvider ( provider, lib )
 		error( "given object does not implement the provider interface", 2 )
 	end
 
-	local libname = debug.getinfo( 2, "S" ).short_src:match( "starfall%/libraries%/(.*)%/.*%.lua" )
+	local libname = lib or debug.getinfo( 2, "S" ).short_src:match( "starfall%/libraries%/(.*)%/.*%.lua" )
 
 	providers[ libname ] = provider
 end
@@ -122,7 +124,7 @@ local nodesJSON = {}
 if SERVER then
 	util.AddNetworkString( "starfall_client_node_data" )
 
-	hook.Add( "PlayerAuthed", "starfall_send_node_data", function ( ply )
+	net.Receive( "starfall_client_node_data", function ( _, ply )
 		net.Start( "starfall_client_node_data" )
 		net.WriteTable( nodesJSON )
 		net.Send( ply )
@@ -150,10 +152,6 @@ if SERVER then
 		end
 	end
 elseif CLIENT then
-	net.Receive( "starfall_client_lib_data", function ()
-		nodesJSON = net.ReadTable( )
-	end )
-
 	function P.loadLibPermissions ( lib )
 		if nodesJSON[ lib ] then
 			local nodes = nodesJSON[ lib ]
@@ -167,15 +165,27 @@ elseif CLIENT then
 			end
 		end
 	end
+
+	net.Receive( "starfall_client_node_data", function ()
+		nodesJSON = net.ReadTable( )
+
+		local _, dirs = file.Find( "starfall/libraries/*", "LUA" )
+		for _, dir in pairs( dirs ) do
+			if SF.Libraries.wasLoaded( dir ) then
+				P.loadLibPermissions( "starfall/libraries/" .. dir )
+			end
+		end
+	end )
 end
 
 hook.Add( "sf_libs_loaded", "starfall_load_permissions", function ()
-	local _, dirs = file.Find( "starfall/libraries/*", "LUA" )
-
 	if SERVER and P.AdminMod:GetString() ~= "" then
-		if file.Exists( "starfall/permissions/" .. P.AdminMod:GetString() .. ".lua", "LUA" ) then
-			include( "starfall/permissions/" .. P.AdminMod:GetString() .. ".lua" )
-			AddCSLuaFile( "starfall/permissions/" .. P.AdminMod:GetString() .. ".lua" )
+		local AM = P.AdminMod:GetString()
+		if file.Exists( "starfall/permissions/" .. AM .. ".lua", "LUA" ) then
+			print( "-Loading starfall " .. AM .. " permissions" )
+
+			include( "starfall/permissions/" .. AM .. ".lua" )
+			AddCSLuaFile( "starfall/permissions/" .. AM .. ".lua" )
 		end
 	elseif CLIENT then
 		for _, file in pairs( file.Find( "starfall/permissions/*.lua", "LUA" ) ) do
@@ -183,9 +193,17 @@ hook.Add( "sf_libs_loaded", "starfall_load_permissions", function ()
 		end
 	end
 
-	for _, dir in pairs( dirs ) do
-		if SF.Libraries.wasLoaded( dir ) then
-			P.loadLibPermissions( "starfall/libraries/" .. dir )
+	print( "-Loading starfall library permissions" )
+
+	if SERVER then
+		local _, dirs = file.Find( "starfall/libraries/*", "LUA" )
+		for _, dir in pairs( dirs ) do
+			if SF.Libraries.wasLoaded( dir ) then
+				P.loadLibPermissions( "starfall/libraries/" .. dir )
+			end
 		end
+	else
+		net.Start( "starfall_client_node_data" )
+		net.SendToServer()
 	end
 end )
